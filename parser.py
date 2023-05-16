@@ -35,7 +35,40 @@ def generate_schedule_link(year, month, day):
 
 
 def parse_diary_entries(soup):
-    # your parsing logic here
+    # Extract information about the student from the top panel
+    student_name = soup.find('strong').text
+    class_name = soup.find('span').text.split(',')[-1].strip()
+
+    # Extract the date from the week selector
+    week_selector = soup.find('div', {'class': 'week-selector'})
+    month_name = week_selector.find('span').text
+
+    # Extract the diary entries
+    diary_entries = []
+    day_entries = []
+    day_counter = 1
+
+    for entry in soup.find_all('tr'):
+        if entry.find('td', {'class': 'tt-subj'}):
+            subject = entry.find('td', {'class': 'tt-subj'}).text.strip()
+            task = entry.find('td', {'class': 'tt-task'}).text.strip()
+            mark = entry.find('td', {'class': 'tt-mark'}).text.strip()
+            day_entries.append([subject, task, mark])
+
+            if len(day_entries) == 9:
+                day_label = f"Day {day_counter}"
+                diary_entries.append([day_label] + day_entries)
+                day_counter += 1
+                day_entries = []
+
+    # Add the last day's entries, if any
+    if day_entries:
+        day_label = f"Day {day_counter}"
+        diary_entries.append([day_label] + day_entries)
+
+    # Return the parsed diary entries
+    return {'student_name': student_name, 'class_name': class_name, 'month_name': month_name,
+            'diary_entries': diary_entries}
 
 
 @app.route('/', methods=['GET', 'POST'])
