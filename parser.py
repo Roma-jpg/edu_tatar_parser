@@ -2,7 +2,7 @@ from datetime import datetime
 
 import requests
 from bs4 import BeautifulSoup
-from flask import Flask, jsonify, request, json
+from flask import Flask, jsonify, request, render_template
 
 app = Flask(__name__)
 
@@ -26,11 +26,6 @@ headers = {
         'sec-ch-ua-platform': '"Windows"'
     }
 
-# @app.route('/', methods=['GET'])
-# def index2():
-#     return 'Hello! Please provide your login credentials via a POST request.'
-
-
 
 def generate_schedule_link(year, month, day):
     dt = datetime(year, month, day)
@@ -40,78 +35,46 @@ def generate_schedule_link(year, month, day):
 
 
 def parse_diary_entries(soup):
-    # Extract information about the student from the top panel
-    student_name = soup.find('strong').text
-    class_name = soup.find('span').text.split(',')[-1].strip()
-
-    # Extract the date from the week selector
-    week_selector = soup.find('div', {'class': 'week-selector'})
-    month_name = week_selector.find('span').text
-
-    # Extract the diary entries
-    diary_entries = []
-    day_entries = []
-    day_counter = 1
-
-    for entry in soup.find_all('tr'):
-        if entry.find('td', {'class': 'tt-subj'}):
-            subject = entry.find('td', {'class': 'tt-subj'}).text.strip()
-            task = entry.find('td', {'class': 'tt-task'}).text.strip()
-            mark = entry.find('td', {'class': 'tt-mark'}).text.strip()
-            day_entries.append([subject, task, mark])
-
-            if len(day_entries) == 9:
-                day_label = f"Day {day_counter}"
-                diary_entries.append([day_label] + day_entries)
-                day_counter += 1
-                day_entries = []
-
-    # Add the last day's entries, if any
-    if day_entries:
-        day_label = f"Day {day_counter}"
-        diary_entries.append([day_label] + day_entries)
-
-    # Return the parsed diary entries
-    return {'student_name': student_name, 'class_name': class_name, 'month_name': month_name,
-            'diary_entries': diary_entries}
+    # your parsing logic here
 
 
-@app.route('/', methods=['POST'])
+@app.route('/', methods=['GET', 'POST'])
 def index():
-    year = 2023
-    month = 3
-    day = 30
-    url = "https://edu.tatar.ru/login"
-    url2 = generate_schedule_link(year, month, day)
-    login = request.form.get('login')
-    password = request.form.get('password')
+    if request.method == 'GET':
+        return render_template('index.html')
 
-    # check if login and password are provided in the request
-    if not login or not password:
-        return jsonify({'error': 'Login and password are required.'}), 400
+    if request.method == 'POST':
+        year = 2023
+        month = 3
+        day = 30
+        url = "https://edu.tatar.ru/login"
+        url2 = generate_schedule_link(year, month, day)
+        login = request.form.get('login')
+        password = request.form.get('password')
 
-    login_data = {"main_login2": login, "main_password2": password}
-    try:
-        with requests.Session() as s:
-            s.post(url, data=login_data, headers=headers)
-            diary_page = s.get(url2, headers=headers)
-            soup = BeautifulSoup(diary_page.content, "html.parser")
-    except Exception as ex:
-        return str(ex)
+        # check if login and password are provided in the request
+        if not login or not password:
+            return jsonify({'error': 'Login and password are required.'}), 400
 
-    parsed_diary_entries = parse_diary_entries(soup)
+        login_data = {"main_login2": login, "main_password2": password}
+        try:
+            with requests.Session() as s:
+                s.post(url, data=login_data, headers=headers)
+                diary_page = s.get(url2, headers=headers)
+                soup = BeautifulSoup(diary_page.content, "html.parser")
+        except Exception as ex:
+            return str(ex)
 
-    # Create a JSON response
-    response = {
-        'student_name': parsed_diary_entries['student_name'],
-        'class_name': parsed_diary_entries['class_name'],
-        'month_name': parsed_diary_entries['month_name'],
-        'diary_entries': parsed_diary_entries['diary_entries']
-    }
-    response_bytes = jsonify(response).data
-    response_str = response_bytes.decode('utf-8')
-    return response_str
+        parsed_diary_entries = parse_diary_entries(soup)
 
+        # Create a JSON response
+        response = {
+            'student_name': parsed_diary_entries['student_name'],
+            'class_name': parsed_diary_entries['class_name'],
+            'month_name': parsed_diary_entries['month_name'],
+            'diary_entries': parsed_diary_entries['diary_entries']
+        }
+        return jsonify(response)
 
 
 if __name__ == '__main__':
