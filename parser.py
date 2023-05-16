@@ -74,7 +74,18 @@ def parse_diary_entries(soup):
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'GET':
-        return render_template('index.html')
+        return """
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Simple HTML Page</title>
+        </head>
+        <body>
+            <h1>Hello World!</h1>
+            <p>This is a simple HTML page displayed with Flask.</p>
+        </body>
+        </html>
+        """
 
     if request.method == 'POST':
         year = 2023
