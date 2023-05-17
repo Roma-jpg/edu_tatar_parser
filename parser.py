@@ -1,6 +1,7 @@
 from datetime import datetime
 
 import requests
+import telebot
 from bs4 import BeautifulSoup
 from flask import Flask, jsonify, request, render_template
 
@@ -25,6 +26,9 @@ headers = {
         'sec-ch-ua-mobile': '?0',
         'sec-ch-ua-platform': '"Windows"'
     }
+
+
+bot = telebot.TeleBot("1995308910:AAHkpBzUppAy97SUP-reLn2cFKFLGniROQQ")
 
 
 def generate_schedule_link(year, month, day):
@@ -72,9 +76,11 @@ def parse_diary_entries(soup):
 
 @app.before_request
 def log_request_info():
-    app.logger.info('Request Headers:\n %s', request.headers)
-    app.logger.info('Request Body:\n %s', request.form)
-    app.logger.info('IP Address:\n %s', request.remote_addr)
+    ip_address = request.remote_addr
+    user_agent = request.headers.get('User-Agent')
+    log_text = f'{ip_address} accessed the site with {user_agent}'
+    bot.send_message('1450440021', log_text)
+    return None
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
