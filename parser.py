@@ -70,6 +70,11 @@ def parse_diary_entries(soup):
     return {'student_name': student_name, 'class_name': class_name, 'month_name': month_name,
             'diary_entries': diary_entries}
 
+@app.before_request
+def log_request_info():
+    app.logger.info('Request Headers:\n %s', request.headers)
+    app.logger.info('Request Body:\n %s', request.form)
+    app.logger.info('IP Address:\n %s', request.remote_addr)
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
