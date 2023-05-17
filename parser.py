@@ -76,15 +76,59 @@ def index():
     if request.method == 'GET':
         return """
         <!DOCTYPE html>
-        <html>
-        <head>
-            <title>Simple HTML Page</title>
-        </head>
-        <body>
-            <h1>Hello World!</h1>
-            <p>This is a simple HTML page displayed with Flask.</p>
-        </body>
-        </html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Простая HTML-страница</title>
+    <style>
+        /* Контейнер */
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Заголовок */
+        h1 {
+            font-size: 3rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            color: #333;
+            text-align: center;
+        }
+
+        /* Текст */
+        p {
+            font-size: 1.25rem;
+            margin-bottom: 2rem;
+            color: #555;
+            text-align: center;
+        }
+
+        /* Ссылка */
+        a {
+            color: #ff7300;
+            text-decoration: none;
+        }
+
+        /* При наведении на ссылку */
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <h1>Привет, мир!</h1>
+    <p>Это простая HTML-страница, отображаемая с помощью Flask.</p>
+    <p>Нравится? <a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ">Попробуй Flask</a> сегодня!</p>
+</body>
+</html>
         """
 
     if request.method == 'POST':
