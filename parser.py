@@ -1,9 +1,12 @@
+#coding: utf-8
+
 from datetime import datetime
 
 import requests
 import telebot
 from bs4 import BeautifulSoup
 from flask import Flask, jsonify, request, render_template
+from flask.json import dumps
 
 app = Flask(__name__)
 
@@ -143,10 +146,18 @@ def index():
         """
 
     if request.method == 'POST':
-        year = 2023
-        month = 3
-        day = 30
-        url = "https://edu.tatar.ru/login"
+        date_str = request.form.get('date')  # Get the date from the form input
+
+        # Convert the date string to a datetime object
+        try:
+            date = datetime.strptime(date_str, '%d-%m-%Y')
+        except ValueError:
+            return jsonify({'error': 'Invalid date format. Please use DD-MM-YYYY.'}), 400
+
+        year = date.year
+        month = date.month
+        day = date.day
+        url = "https://edu.tatar.ru/logon"
         url2 = generate_schedule_link(year, month, day)
         login = request.form.get('login')
         password = request.form.get('password')
@@ -160,7 +171,7 @@ def index():
             with requests.Session() as s:
                 s.post(url, data=login_data, headers=headers)
                 diary_page = s.get(url2, headers=headers)
-                soup = BeautifulSoup(diary_page.content, "html.parser")
+                soup = BeautifulSoup(diary_page.content, "lxml")
         except Exception as ex:
             return str(ex)
 
@@ -168,13 +179,14 @@ def index():
 
         # Create a JSON response
         response = {
-            'student_name': parsed_diary_entries['student_name'],
+            'student_name': parsed_diary_entries['student_name'].encode('utf-8').decode('utf-8'),
             'class_name': parsed_diary_entries['class_name'],
             'month_name': parsed_diary_entries['month_name'],
             'diary_entries': parsed_diary_entries['diary_entries']
         }
+
         return jsonify(response)
 
 
 if __name__ == '__main__':
-    app.run("0.0.0.0", port=80)
+    app.run("0.0.0.0", port=8080)
